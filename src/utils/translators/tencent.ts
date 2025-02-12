@@ -3,7 +3,7 @@ import { preferences } from "../preferences";
 
 export const tencentTranslate = async (text: string): Promise<string> => {
   if (!text.trim()) return "";
-  
+
   if (!preferences?.enableTencentTranslate) {
     return "";
   }

@@ -7,7 +7,7 @@ import { glmTranslate } from "../utils/translators/glm";
 import { tencentTranslate } from "../utils/translators/tencent";
 import { youdaoTranslate } from "../utils/translators/youdao";
 
-import debounce from 'lodash/debounce';
+import debounce from "lodash/debounce";
 
 interface TranslateListProps {
   formatFunction: (text: string) => string;
@@ -17,9 +17,9 @@ interface TranslateListProps {
 export function TranslateList({ formatFunction, queryText }: TranslateListProps) {
   const [searchText, setSearchText] = useState(queryText || "");
   const [hasSearched, setHasSearched] = useState(false);
-  const [results, setResults] = useState<{[key: string]: string}>({});
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
-  const [loading, setLoading] = useState<{[key: string]: boolean}>({});
+  const [results, setResults] = useState<{ [key: string]: string }>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const [youdaoResults, setYoudaoResults] = useState<string[]>([]);
 
   const handleTranslate = async (text: string) => {
@@ -48,17 +48,17 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
     Object.entries(services).forEach(async ([key, translator]) => {
       try {
         const translated = await translator(text);
-        setResults(prev => ({
+        setResults((prev) => ({
           ...prev,
-          [key]: translated ? formatFunction(translated) : '',
+          [key]: translated ? formatFunction(translated) : "",
         }));
       } catch (error) {
-        setErrors(prev => ({
+        setErrors((prev) => ({
           ...prev,
           [key]: String(error),
         }));
       } finally {
-        setLoading(prev => ({
+        setLoading((prev) => ({
           ...prev,
           [key]: false,
         }));
@@ -68,14 +68,14 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
     // 单独处理有道翻译
     try {
       const translations = await youdaoTranslate(text);
-      setYoudaoResults(translations.map(t => formatFunction(t)));
+      setYoudaoResults(translations.map((t) => formatFunction(t)));
     } catch (error) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
         youdao: String(error),
       }));
     } finally {
-      setLoading(prev => ({
+      setLoading((prev) => ({
         ...prev,
         youdao: false,
       }));
@@ -88,7 +88,7 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
         handleTranslate(text);
       }
     }, 1000),
-    []
+    [],
   );
 
   const renderItems = () => {
@@ -104,10 +104,10 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
 
     // 收集所有翻译结果
     const translationMap = new Map<string, string[]>();
-    
+
     // 处理普通翻译结果
     Object.entries(services).forEach(([key, title]) => {
-      if (key !== 'youdao' && results[key]) {
+      if (key !== "youdao" && results[key]) {
         const result = results[key];
         if (!translationMap.has(result)) {
           translationMap.set(result, [title]);
@@ -140,11 +140,7 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
             actions={
               <ActionPanel>
                 <ActionPanel.Section>
-                  <Action 
-                    title="Paste" 
-                    icon={Icon.TextInput}
-                    onAction={async () => await Clipboard.paste(result)} 
-                  />
+                  <Action title="Paste" icon={Icon.TextInput} onAction={async () => await Clipboard.paste(result)} />
                   <Action
                     title="Copy to Clipboard"
                     icon={Icon.CopyClipboard}
@@ -153,21 +149,14 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
                 </ActionPanel.Section>
               </ActionPanel>
             }
-          />
+          />,
         );
       });
 
     // 最后添加错误结果
     Object.entries(services).forEach(([key, title]) => {
       if (errors[key]) {
-        items.push(
-          <List.Item
-            key={`error-${key}`}
-            icon={Icon.ExclamationMark}
-            title={errors[key]}
-            subtitle={title}
-          />
-        );
+        items.push(<List.Item key={`error-${key}`} icon={Icon.ExclamationMark} title={errors[key]} subtitle={title} />);
       }
     });
 
@@ -176,7 +165,7 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
 
   return (
     <List
-      isLoading={Object.values(loading).some(value => value)}
+      isLoading={Object.values(loading).some((value) => value)}
       searchText={searchText}
       onSearchTextChange={(text) => {
         setSearchText(text);
@@ -188,17 +177,21 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
       searchBarPlaceholder="Enter text..."
     >
       <List.EmptyView
-        icon={Object.values(loading).some(value => value) ? Icon.Clock : Icon.QuestionMark}
-        title={Object.values(loading).some(value => value) 
-          ? "Translating..." 
-          : !hasSearched
-            ? "Enter Text to Translate"
-            : "No Results Found"}
-        description={Object.values(loading).some(value => value)
-          ? "Please wait" 
-          : !hasSearched
-            ? "Type something to get variable name suggestions"
-            : "Try another text or check translation service settings"}
+        icon={Object.values(loading).some((value) => value) ? Icon.Clock : Icon.QuestionMark}
+        title={
+          Object.values(loading).some((value) => value)
+            ? "Translating..."
+            : !hasSearched
+              ? "Enter Text to Translate"
+              : "No Results Found"
+        }
+        description={
+          Object.values(loading).some((value) => value)
+            ? "Please wait"
+            : !hasSearched
+              ? "Type something to get variable name suggestions"
+              : "Try another text or check translation service settings"
+        }
       />
       {renderItems()}
     </List>

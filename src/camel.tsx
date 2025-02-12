@@ -9,11 +9,9 @@ const formatCamelCase = (text: string) => {
         return index === 0 ? word.toLowerCase() : word;
       }
       // 普通单词的处理
-      return index === 0 
-        ? word.toLowerCase() 
-        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      return index === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
-    .join('');
+    .join("");
 };
 
 export default function Command({ arguments: { queryText } }: { arguments: { queryText?: string } }) {

@@ -5,7 +5,7 @@ import { preferences } from "../preferences";
 
 export const openaiTranslate = async (text: string): Promise<string> => {
   if (!text.trim()) return "";
-  
+
   if (!preferences?.enableOpenAITranslate) {
     return "";
   }
@@ -21,16 +21,18 @@ export const openaiTranslate = async (text: string): Promise<string> => {
     maxRetries: 1,
     configuration: {
       baseURL: preferences.openaiBaseUrl,
-      httpAgent: preferences?.httpProxy ? new HttpsProxyAgent(preferences.httpProxy) : undefined
+      httpAgent: preferences?.httpProxy ? new HttpsProxyAgent(preferences.httpProxy) : undefined,
     },
   });
 
   const response = await model.invoke([
-    new SystemMessage("You are a translator. Translate the text to English. You can use common abbreviations and technical terms (e.g., LLM for Large Language Model, API for Application Programming Interface). Only return the translated text without explanation or punctuation."),
+    new SystemMessage(
+      "You are a translator. Translate the text to English. You can use common abbreviations and technical terms (e.g., LLM for Large Language Model, API for Application Programming Interface). Only return the translated text without explanation or punctuation.",
+    ),
     new HumanMessage(text),
   ]);
 
   const translated = response.content as string;
   translated.trim();
-  return translated.replace(/[.,#!$%&*;:{}=\-_`~()"']/g, '');
+  return translated.replace(/[.,#!$%&*;:{}=\-_`~()"']/g, "");
 };
