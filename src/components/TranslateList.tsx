@@ -5,6 +5,7 @@ import { openaiTranslate } from "../utils/translators/openai";
 import { deepseekTranslate } from "../utils/translators/deepseek";
 import { glmTranslate } from "../utils/translators/glm";
 import { tencentTranslate } from "../utils/translators/tencent";
+import { youdaoTranslate } from "../utils/translators/youdao";
 
 import debounce from 'lodash/debounce';
 
@@ -15,23 +16,26 @@ interface TranslateListProps {
 
 export function TranslateList({ formatFunction, queryText }: TranslateListProps) {
   const [searchText, setSearchText] = useState(queryText || "");
+  const [hasSearched, setHasSearched] = useState(false);
   const [results, setResults] = useState<{[key: string]: string}>({});
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [loading, setLoading] = useState<{[key: string]: boolean}>({});
+  const [youdaoResults, setYoudaoResults] = useState<string[]>([]);
 
   const handleTranslate = async (text: string) => {
-    // 重置状态
+    setHasSearched(true);
     setResults({});
     setErrors({});
+    setYoudaoResults([]);
     setLoading({
       google: true,
       openai: true,
       deepseek: true,
       glm: true,
       tencent: true,
+      youdao: true,
     });
 
-    // 独立调用每个翻译服务
     const services = {
       google: googleTranslate,
       openai: openaiTranslate,
@@ -40,6 +44,7 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
       tencent: tencentTranslate,
     };
 
+    // 并行处理所有翻译服务，但不等待全部完成
     Object.entries(services).forEach(async ([key, translator]) => {
       try {
         const translated = await translator(text);
@@ -59,6 +64,22 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
         }));
       }
     });
+
+    // 单独处理有道翻译
+    try {
+      const translations = await youdaoTranslate(text);
+      setYoudaoResults(translations.map(t => formatFunction(t)));
+    } catch (error) {
+      setErrors(prev => ({
+        ...prev,
+        youdao: String(error),
+      }));
+    } finally {
+      setLoading(prev => ({
+        ...prev,
+        youdao: false,
+      }));
+    }
   };
 
   const debouncedTranslate = useCallback(
@@ -70,79 +91,116 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
     []
   );
 
-  const renderListItem = (key: string, title: string) => {
-    if (errors[key]) {
-      return (
-        <List.Item
-          icon={Icon.ExclamationMark}
-          title={errors[key]}
-          subtitle={title}
-        />
-      );
+  const renderItems = () => {
+    const items: JSX.Element[] = [];
+    const services = {
+      google: "Google",
+      openai: "OpenAI",
+      deepseek: "Deepseek",
+      glm: "GLM",
+      tencent: "Tencent",
+      youdao: "Youdao",
+    };
+
+    // 收集所有翻译结果
+    const translationMap = new Map<string, string[]>();
+    
+    // 处理普通翻译结果
+    Object.entries(services).forEach(([key, title]) => {
+      if (key !== 'youdao' && results[key]) {
+        const result = results[key];
+        if (!translationMap.has(result)) {
+          translationMap.set(result, [title]);
+        } else {
+          translationMap.get(result)?.push(title);
+        }
+      }
+    });
+
+    // 处理有道翻译结果
+    if (youdaoResults.length > 0) {
+      youdaoResults.forEach((result, index) => {
+        if (!translationMap.has(result)) {
+          translationMap.set(result, [`${services.youdao} ${index + 1}`]);
+        } else {
+          translationMap.get(result)?.push(`${services.youdao} ${index + 1}`);
+        }
+      });
     }
 
-    if (results[key]) {
-      return (
-        <List.Item
-          title={results[key]}
-          subtitle={title}
-          actions={
-            <ActionPanel>
-              <ActionPanel.Section>
-                <Action 
-                  title="Paste" 
-                  icon={Icon.TextInput}
-                  onAction={async () => await Clipboard.paste(results[key])} 
-                />
-                <Action
-                  title="Copy to Clipboard"
-                  icon={Icon.CopyClipboard}
-                  onAction={async () => await Clipboard.copy(results[key])}
-                />
-              </ActionPanel.Section>
-            </ActionPanel>
-          }
-        />
-      );
-    }
-    return null;
+    // 按来源数量排序并渲染结果
+    Array.from(translationMap.entries())
+      .sort(([, sourcesA], [, sourcesB]) => sourcesB.length - sourcesA.length)
+      .forEach(([result, sources]) => {
+        items.push(
+          <List.Item
+            key={result}
+            title={result}
+            subtitle={sources.join(", ")}
+            actions={
+              <ActionPanel>
+                <ActionPanel.Section>
+                  <Action 
+                    title="Paste" 
+                    icon={Icon.TextInput}
+                    onAction={async () => await Clipboard.paste(result)} 
+                  />
+                  <Action
+                    title="Copy to Clipboard"
+                    icon={Icon.CopyClipboard}
+                    onAction={async () => await Clipboard.copy(result)}
+                  />
+                </ActionPanel.Section>
+              </ActionPanel>
+            }
+          />
+        );
+      });
+
+    // 最后添加错误结果
+    Object.entries(services).forEach(([key, title]) => {
+      if (errors[key]) {
+        items.push(
+          <List.Item
+            key={`error-${key}`}
+            icon={Icon.ExclamationMark}
+            title={errors[key]}
+            subtitle={title}
+          />
+        );
+      }
+    });
+
+    return items;
   };
-
-  const isAnyLoading = Object.values(loading).some(Boolean);
 
   return (
     <List
-      isLoading={isAnyLoading}
+      isLoading={Object.values(loading).some(value => value)}
       searchText={searchText}
       onSearchTextChange={(text) => {
         setSearchText(text);
+        if (!text.trim()) {
+          setHasSearched(false);
+        }
         debouncedTranslate(text);
       }}
       searchBarPlaceholder="Enter text..."
     >
-      {Object.entries({
-        google: "Google Translate",
-        openai: "OpenAI Translate",
-        deepseek: "Deepseek Translate",
-        glm: "GLM Translate",
-        tencent: "Tencent Translate",
-      })
-        .sort(([keyA], [keyB]) => {
-          // 如果两个都是错误，保持原顺序
-          if (errors[keyA] && errors[keyB]) return 0;
-          // 错误的排在后面
-          if (errors[keyA]) return 1;
-          if (errors[keyB]) return -1;
-          // 加载中的排在后面
-          if (loading[keyA] && !loading[keyB]) return 1;
-          if (!loading[keyA] && loading[keyB]) return -1;
-          // 有结果的排在前面
-          if (results[keyA] && !results[keyB]) return -1;
-          if (!results[keyA] && results[keyB]) return 1;
-          // 保持原顺序
-          return 0;
-        })
-        .map(([key, title]) => renderListItem(key, title))}
+      <List.EmptyView
+        icon={Object.values(loading).some(value => value) ? Icon.Clock : Icon.QuestionMark}
+        title={Object.values(loading).some(value => value) 
+          ? "Translating..." 
+          : !hasSearched
+            ? "Enter Text to Translate"
+            : "No Results Found"}
+        description={Object.values(loading).some(value => value)
+          ? "Please wait" 
+          : !hasSearched
+            ? "Type something to get variable name suggestions"
+            : "Try another text or check translation service settings"}
+      />
+      {renderItems()}
     </List>
   );
 }

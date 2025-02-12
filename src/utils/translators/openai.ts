@@ -16,7 +16,9 @@ export const openaiTranslate = async (text: string): Promise<string> => {
   const model = new ChatOpenAI({
     openAIApiKey: preferences.openaiApiKey,
     modelName: preferences.openaiModel || "gpt-3.5-turbo",
-    temperature: 0.3,
+    temperature: 0.7,
+    timeout: 10000,
+    maxRetries: 1,
     configuration: {
       baseURL: preferences.openaiBaseUrl,
       httpAgent: preferences?.httpProxy ? new HttpsProxyAgent(preferences.httpProxy) : undefined

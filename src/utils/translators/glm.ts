@@ -3,7 +3,7 @@ import { preferences } from "../preferences";
 
 export const glmTranslate = async (text: string): Promise<string> => {
   if (!text.trim()) return "";
-  
+
   if (!preferences?.enableGLMTranslate) {
     return "";
   }
@@ -17,10 +17,12 @@ export const glmTranslate = async (text: string): Promise<string> => {
 
   const response = await ai.createCompletions({
     model: "glm-4-flash",
+    timeout: 10000,
     messages: [
       {
         role: "system",
-        content: "You are a translator. Translate the text to English. You can use common abbreviations and technical terms (e.g., LLM for Large Language Model, API for Application Programming Interface). Only return the translated text without explanation or punctuation.",
+        content:
+          "You are a translator. Translate the text to English. You can use common abbreviations and technical terms (e.g., LLM for Large Language Model, API for Application Programming Interface). Only return the translated text without explanation or punctuation.",
       },
       {
         role: "user",
@@ -28,12 +30,12 @@ export const glmTranslate = async (text: string): Promise<string> => {
       },
     ],
     stream: false,
-    temperature: 0.3,
+    temperature: 0.7,
   });
 
-  if ('choices' in response) {
+  if ("choices" in response) {
     const translated = response.choices[0]?.message?.content?.trim() ?? "";
-    return translated.replace(/[.,#!$%&*;:{}=\-_`~()"']/g, '');
+    return translated.replace(/[.,#!$%&*;:{}=\-_`~()"']/g, "");
   }
   throw new Error("Invalid response from GLM API");
 };

@@ -1,12 +1,12 @@
 import { getPreferenceValues } from "@raycast/api";
 
 export interface Preferences {
+  httpProxy: string;
   enableGoogleTranslate: boolean;
   enableTencentTranslate: boolean;
-  enableGLMTranslate: boolean;
-  httpProxy: string;
   tencentSecretId: string;
   tencentSecretKey: string;
+  enableGLMTranslate: boolean;
   glmApiKey: string;
   enableOpenAITranslate: boolean;
   openaiApiKey: string;
@@ -14,6 +14,7 @@ export interface Preferences {
   openaiBaseUrl: string;
   enableDeepseekTranslate: boolean;
   deepseekApiKey: string;
+  enableYoudaoTranslate: boolean;
 }
 
 export const preferences = getPreferenceValues<Preferences>();

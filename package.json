@@ -6,22 +6,31 @@
   "icon": "extension-icon.png",
   "author": "chs",
   "categories": [
-    "Developer Tools"
+    "Developer Tools",
+    "Data"
   ],
   "license": "MIT",
   "preferences": [
     {
       "type": "checkbox",
       "title": "Switch Translate",
-      "description": "Enable Google Translate",
+      "description": "use Google Translate,may need proxy",
       "required": false,
       "name": "enableGoogleTranslate",
-      "default": true,
+      "default": false,
       "label": "Google Translate"
     },
     {
       "type": "checkbox",
-      "description": "Enable GLM Translate",
+      "description": "Enable Youdao Web Translate",
+      "required": false,
+      "name": "enableYoudaoTranslate",
+      "default": true,
+      "label": "Youdao Translate"
+    },
+    {
+      "type": "checkbox",
+      "description": "Need zhipuai Api Key,glm-4-flash is free",
       "required": false,
       "name": "enableGLMTranslate",
       "default": false,
@@ -29,7 +38,7 @@
     },
     {
       "type": "checkbox",
-      "description": "Enable OpenAI Translate",
+      "description": "Need OpenAI Api Key,or other OpenAI style Api",
       "required": false,
       "name": "enableOpenAITranslate",
       "default": false,
@@ -37,15 +46,15 @@
     },
     {
       "type": "checkbox",
-      "description": "Enable Deepseek Translate",
+      "description": "Need Deepseek Api Key",
       "required": false,
       "name": "enableDeepseekTranslate",
-      "default": true,
+      "default": false,
       "label": "Deepseek Translate"
     },
     {
       "type": "checkbox",
-      "description": "Enable Tencent Translate",
+      "description": "Enable Tencent Translate SecretId and SecretKey",
       "required": false,
       "name": "enableTencentTranslate",
       "default": false,
@@ -66,7 +75,7 @@
       "name": "glmApiKey",
       "default": "",
       "required": false,
-      "description": "API Key for GLM AI Platform"
+      "description": "API Key for ZhipuAI Platform"
     },
     {
       "type": "textfield",
@@ -119,77 +128,77 @@
   ],
   "commands": [
     {
-      "name": "tocl",
-      "title": "tocl",
-      "subtitle": "CONSTANT",
-      "description": "Convert Translate Result Into CONSTANT",
+      "name": "constant",
+      "title": "Generate CONSTANT Variable",
+      "subtitle": "Easy Variable",
+      "description": "Generate CONSTANT case variable name",
       "mode": "view",
       "arguments": [
         {
           "name": "queryText",
-          "placeholder": "Query",
+          "placeholder": "Enter text to convert",
           "type": "text",
-          "required": false
+          "required": true
         }
       ]
     },
     {
-      "name": "toxt",
-      "title": "toxt",
-      "subtitle": "lowerCamelCase",
-      "description": "Convert Translate Result Into lowerCamelCase",
+      "name": "camel",
+      "title": "Generate camelCase Variable",
+      "subtitle": "Easy Variable",
+      "description": "Generate camelCase variable name",
       "mode": "view",
       "arguments": [
         {
           "name": "queryText",
-          "placeholder": "Query",
+          "placeholder": "Enter text to convert",
           "type": "text",
-          "required": false
+          "required": true
         }
       ]
     },
     {
-      "name": "todt",
-      "title": "todt",
-      "subtitle": "UpperCamelCase",
-      "description": "Convert Translate Result Into UpperCamelCase",
+      "name": "pascal",
+      "title": "Generate PascalCase Variable",
+      "subtitle": "Easy Variable",
+      "description": "Generate PascalCase variable name",
       "mode": "view",
       "arguments": [
         {
           "name": "queryText",
-          "placeholder": "Query",
+          "placeholder": "Enter text to convert",
           "type": "text",
-          "required": false
+          "required": true
         }
       ]
     },
     {
-      "name": "toxh",
-      "title": "toxh",
-      "subtitle": "upderscore_case",
-      "description": "Convert Translate Result Into underscore_case",
+      "name": "snake",
+      "title": "Generate snake_case Variable",
+      "subtitle": "Easy Variable",
+      "description": "Generate snake_case variable name",
       "mode": "view",
       "arguments": [
         {
           "name": "queryText",
-          "placeholder": "Query",
+          "placeholder": "Enter text to convert",
           "type": "text",
-          "required": false
+          "required": true
         }
       ]
     },
     {
-      "name": "tohx",
-      "title": "tohx",
-      "subtitle": "kebab-case",
-      "description": "Convert Translate Result Into kebab-case",
+      "name": "kebab",
+      "title": "Generate kebab-case Variable",
+      "subtitle": "Easy Variable",
+      "description": "Generate kebab-case variable name",
       "mode": "view",
       "arguments": [
         {
           "name": "queryText",
-          "placeholder": "Query",
+          "placeholder": "Enter text to convert",
           "type": "text",
-          "required": false
+          "required": true
         }
       ]
     }
@@ -202,6 +211,7 @@
     "@raycast/utils": "^1.17.0",
     "@vitalets/google-translate-api": "^9.2.1",
     "axios": "^1.7.9",
+    "cheerio": "^1.0.0",
     "https-proxy-agent": "^7.0.6",
     "lodash": "^4.17.21",
     "mac-system-proxy": "^1.0.4",
