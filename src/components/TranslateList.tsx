@@ -1,4 +1,4 @@
-import { ActionPanel, Action, Icon, List, Clipboard } from "@raycast/api";
+import { ActionPanel, Action, Icon, List } from "@raycast/api";
 import { useState, useCallback } from "react";
 import { googleTranslate } from "../utils/translators/google";
 import { openaiTranslate } from "../utils/translators/openai";
@@ -9,12 +9,13 @@ import { youdaoTranslate } from "../utils/translators/youdao";
 
 import debounce from "lodash/debounce";
 
+import { FormatList } from "./FormatList";
+
 interface TranslateListProps {
-  formatFunction: (text: string) => string;
   queryText?: string;
 }
 
-export function TranslateList({ formatFunction, queryText }: TranslateListProps) {
+export function TranslateList({ queryText }: TranslateListProps) {
   const [searchText, setSearchText] = useState(queryText || "");
   const [hasSearched, setHasSearched] = useState(false);
   const [results, setResults] = useState<{ [key: string]: string }>({});
@@ -22,72 +23,71 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const [youdaoResults, setYoudaoResults] = useState<string[]>([]);
 
-  const handleTranslate = async (text: string) => {
-    setHasSearched(true);
-    setResults({});
-    setErrors({});
-    setYoudaoResults([]);
-    setLoading({
-      google: true,
-      openai: true,
-      deepseek: true,
-      glm: true,
-      tencent: true,
-      youdao: true,
-    });
-
-    const services = {
-      google: googleTranslate,
-      openai: openaiTranslate,
-      deepseek: deepseekTranslate,
-      glm: glmTranslate,
-      tencent: tencentTranslate,
+  // 修改 handleTranslate 方法
+  const formatTranslatedText = (text: string) => {
+      return text
+        .split(/\s+/)
+        .map(word => word === word.toUpperCase() && word.length > 1 ? word : word.toLowerCase())
+        .join(" ");
     };
-
-    // 并行处理所有翻译服务，但不等待全部完成
-    Object.entries(services).forEach(async ([key, translator]) => {
-      try {
-        const translated = await translator(text);
-        setResults((prev) => ({
-          ...prev,
-          [key]: translated ? formatFunction(translated) : "",
-        }));
-      } catch (error) {
-        setErrors((prev) => ({
-          ...prev,
-          [key]: String(error),
-        }));
-      } finally {
-        setLoading((prev) => ({
-          ...prev,
-          [key]: false,
-        }));
-      }
-    });
-
-    // 单独处理有道翻译
-    try {
-      const translations = await youdaoTranslate(text);
-      setYoudaoResults(translations.map((t) => formatFunction(t)));
-    } catch (error) {
-      setErrors((prev) => ({
-        ...prev,
-        youdao: String(error),
-      }));
-    } finally {
-      setLoading((prev) => ({
-        ...prev,
-        youdao: false,
-      }));
-    }
-  };
+  
+    const handleTranslate = async (text: string) => {
+      setHasSearched(true);
+      setResults({});
+      setErrors({});
+      setYoudaoResults([]);
+      setLoading({
+        google: true,
+        openai: true,
+        deepseek: true,
+        glm: true,
+        tencent: true,
+        youdao: true,
+      });
+  
+      const services = {
+        google: googleTranslate,
+        openai: openaiTranslate,
+        deepseek: deepseekTranslate,
+        glm: glmTranslate,
+        tencent: tencentTranslate,
+        youdao: async (text: string) => {
+          const translations = await youdaoTranslate(text);
+          setYoudaoResults(translations.map(formatTranslatedText));
+          return formatTranslatedText(translations[0] || "");
+        },
+      };
+  
+      // 并行处理所有翻译服务
+      Object.entries(services).forEach(async ([key, translator]) => {
+        try {
+          const translated = await translator(text);
+          if (key !== "youdao") {
+            setResults((prev) => ({
+              ...prev,
+              [key]: formatTranslatedText(translated || ""),
+            }));
+          }
+        } catch (error) {
+          setErrors((prev) => ({
+            ...prev,
+            [key]: String(error),
+          }));
+        } finally {
+          setLoading((prev) => ({
+            ...prev,
+            [key]: false,
+          }));
+        }
+      });
+    };
 
   const debouncedTranslate = useCallback(
     debounce((text: string) => {
       if (text.trim()) {
         handleTranslate(text);
       }
-    }, 1000),
+    }, 800),
     [],
   );
 
@@ -140,11 +140,10 @@ export function TranslateList({ formatFunction, queryText }: TranslateListProps)
             actions={
               <ActionPanel>
                 <ActionPanel.Section>
-                  <Action title="Paste" icon={Icon.TextInput} onAction={async () => await Clipboard.paste(result)} />
-                  <Action
-                    title="Copy to Clipboard"
-                    icon={Icon.CopyClipboard}
-                    onAction={async () => await Clipboard.copy(result)}
+                  <Action.Push
+                    title="Format Options"
+                    icon={Icon.Text}
+                    target={<FormatList text={result} />}
                   />
                 </ActionPanel.Section>
               </ActionPanel>

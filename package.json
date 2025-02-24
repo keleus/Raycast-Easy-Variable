@@ -128,70 +128,10 @@
   ],
   "commands": [
     {
-      "name": "constant",
-      "title": "Generate CONSTANT Variable",
+      "name": "named",
+      "title": "Named Variable",
       "subtitle": "Easy Variable",
       "description": "Generate CONSTANT case variable name",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "queryText",
-          "placeholder": "Enter text to convert",
-          "type": "text",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "camel",
-      "title": "Generate camelCase Variable",
-      "subtitle": "Easy Variable",
-      "description": "Generate camelCase variable name",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "queryText",
-          "placeholder": "Enter text to convert",
-          "type": "text",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "pascal",
-      "title": "Generate PascalCase Variable",
-      "subtitle": "Easy Variable",
-      "description": "Generate PascalCase variable name",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "queryText",
-          "placeholder": "Enter text to convert",
-          "type": "text",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "snake",
-      "title": "Generate snake_case Variable",
-      "subtitle": "Easy Variable",
-      "description": "Generate snake_case variable name",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "queryText",
-          "placeholder": "Enter text to convert",
-          "type": "text",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "kebab",
-      "title": "Generate kebab-case Variable",
-      "subtitle": "Easy Variable",
-      "description": "Generate kebab-case variable name",
       "mode": "view",
       "arguments": [
         {
