@@ -21,17 +21,14 @@ export function FormatList({ text }: FormatListProps) {
 
   const [searchText, setSearchText] = useState("");
 
-  const filteredFormats = formats.filter(format => 
-    format.name.toLowerCase().includes(searchText.toLowerCase()) || 
-    format.alias.toLowerCase().includes(searchText.toLowerCase())
+  const filteredFormats = formats.filter(
+    (format) =>
+      format.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      format.alias.toLowerCase().includes(searchText.toLowerCase()),
   );
 
   return (
-    <List
-      searchText={searchText}
-      onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search format..."
-    >
+    <List searchText={searchText} onSearchTextChange={setSearchText} searchBarPlaceholder="Search format...">
       {filteredFormats.map((format, index) => (
         <List.Item
           key={format.name}
