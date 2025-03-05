@@ -12,3 +12,4 @@ compiled_raycast_swift
 # misc
 .DS_Store
 sync.sh
+submit.sh
